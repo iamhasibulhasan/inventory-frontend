@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { outboundAPI } from '@/lib/api';
+import { outboundAPI, commercialAPI, warehouseAPI } from '@/lib/api';
 import { PageHeader, DataTable, StatusBadge, Modal, FormField, EmptyState, Badge, StatCard } from '@/components/ui';
 import { ShoppingCart, Plus, CheckCircle, XCircle, Eye, Package, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -18,6 +18,52 @@ export default function OutboundPage() {
   const [sourceFilter, setSourceFilter] = useState('');
   const [detail, setDetail] = useState<Order|null>(null);
   const [modal, setModal] = useState(false);
+
+  const [createModal, setCreateModal] = useState(false);
+const [products, setProducts] = useState<Record<string,unknown>[]>([]);
+const [stores, setStores] = useState<Record<string,unknown>[]>([]);
+const [orderForm, setOrderForm] = useState({
+  order_source: 'manual', customer_name: '', customer_phone: '', customer_address: '',
+  store_id: '', payment_method: 'cash', notes: '', shipping_charge: '0',
+  items: [{ product_id: '', quantity: '1', unit_price: '' }]
+});
+const [orderSaving, setOrderSaving] = useState(false);
+useEffect(() => {
+  commercialAPI.getProducts({ limit: 200 }).then(r => setProducts(r.data.data)).catch(() => {});
+  warehouseAPI.getStores().then(r => setStores(r.data.data)).catch(() => {});
+}, []);
+
+const handleCreateOrder = async () => {
+  if (!orderForm.store_id) return toast.error('Select a warehouse');
+  if (!orderForm.items[0].product_id) return toast.error('Add at least one product');
+  setOrderSaving(true);
+  try {
+    await outboundAPI.create({
+      order_source: orderForm.order_source,
+      store_id: orderForm.store_id,
+      payment_method: orderForm.payment_method,
+      notes: orderForm.notes,
+      shipping_charge: parseFloat(orderForm.shipping_charge) || 0,
+      customer: {
+        name: orderForm.customer_name || 'Walk-in Customer',
+        phone: orderForm.customer_phone,
+        address: orderForm.customer_address,
+      },
+      items: orderForm.items
+        .filter(i => i.product_id)
+        .map(i => ({
+          product_id: i.product_id,
+          quantity: parseInt(i.quantity),
+          unit_price: parseFloat(i.unit_price),
+        })),
+    });
+    toast.success('Order created successfully');
+    setCreateModal(false);
+    fetchOrders();
+  } catch (e: unknown) {
+    toast.error((e as {response?:{data?:{message?:string}}})?.response?.data?.message || 'Failed to create order');
+  } finally { setOrderSaving(false); }
+};
 
   const fetch = useCallback(async () => {
     setLoading(true);
@@ -84,7 +130,9 @@ export default function OutboundPage() {
   return (
     <div>
       <PageHeader title="Outbound Orders" subtitle="Marketplace, e-commerce and manual orders"
-        actions={can('outbound_orders','create') ? <button className="btn-primary"><Plus className="w-4 h-4"/>New Order</button> : undefined}
+        actions={can('outbound_orders','create') ? <button className="btn-primary" onClick={() => setCreateModal(true)}>
+  <Plus className="w-4 h-4" /> New Order
+</button> : undefined}
       />
 
       {/* Stats Row */}
@@ -175,6 +223,80 @@ export default function OutboundPage() {
           </div>
         </Modal>
       )}
+      <Modal isOpen={createModal} onClose={() => setCreateModal(false)} title="Create New Order" size="lg">
+  <div className="space-y-4">
+    <div className="grid grid-cols-2 gap-4">
+      <FormField label="Order Source">
+        <select className="select" value={orderForm.order_source} onChange={e => setOrderForm({...orderForm, order_source: e.target.value})}>
+          {['manual','ecommerce','marketplace'].map(s => <option key={s}>{s}</option>)}
+        </select>
+      </FormField>
+      <FormField label="Warehouse *">
+        <select className="select" value={orderForm.store_id} onChange={e => setOrderForm({...orderForm, store_id: e.target.value})}>
+          <option value="">Select warehouse</option>
+          {stores.map(s => <option key={s.id as string} value={s.id as string}>{s.name as string}</option>)}
+        </select>
+      </FormField>
+      <FormField label="Customer Name">
+        <input className="input" value={orderForm.customer_name} onChange={e => setOrderForm({...orderForm, customer_name: e.target.value})} placeholder="Walk-in Customer" />
+      </FormField>
+      <FormField label="Customer Phone">
+        <input className="input" value={orderForm.customer_phone} onChange={e => setOrderForm({...orderForm, customer_phone: e.target.value})} placeholder="017XXXXXXXX" />
+      </FormField>
+      <FormField label="Payment Method">
+        <select className="select" value={orderForm.payment_method} onChange={e => setOrderForm({...orderForm, payment_method: e.target.value})}>
+          {['cash','card','bkash','nagad','bank_transfer'].map(m => <option key={m}>{m}</option>)}
+        </select>
+      </FormField>
+      <FormField label="Shipping Charge (৳)">
+        <input type="number" className="input" value={orderForm.shipping_charge} onChange={e => setOrderForm({...orderForm, shipping_charge: e.target.value})} />
+      </FormField>
+    </div>
+
+    <div>
+      <div className="flex items-center justify-between mb-2">
+        <label className="label mb-0">Order Items *</label>
+        <button type="button" className="text-xs text-brand-500 hover:underline"
+          onClick={() => setOrderForm({...orderForm, items: [...orderForm.items, {product_id:'', quantity:'1', unit_price:''}]})}>
+          + Add Item
+        </button>
+      </div>
+      {orderForm.items.map((item, i) => (
+        <div key={i} className="flex items-center gap-2 mb-2">
+          <select className="select flex-1" value={item.product_id}
+            onChange={e => {
+              const prod = products.find(p => (p.id as string) === e.target.value);
+              const items = [...orderForm.items];
+              items[i] = {...items[i], product_id: e.target.value, unit_price: String((prod?.selling_price as number) || '')};
+              setOrderForm({...orderForm, items});
+            }}>
+            <option value="">Select product</option>
+            {products.map(p => <option key={p.id as string} value={p.id as string}>{p.name as string} ({p.sku as string})</option>)}
+          </select>
+          <input type="number" className="input w-20" placeholder="Qty" min="1"
+            value={item.quantity} onChange={e => { const items=[...orderForm.items]; items[i]={...items[i],quantity:e.target.value}; setOrderForm({...orderForm,items}); }} />
+          <input type="number" className="input w-28" placeholder="Price ৳"
+            value={item.unit_price} onChange={e => { const items=[...orderForm.items]; items[i]={...items[i],unit_price:e.target.value}; setOrderForm({...orderForm,items}); }} />
+          {orderForm.items.length > 1 && (
+            <button onClick={() => setOrderForm({...orderForm, items: orderForm.items.filter((_,idx)=>idx!==i)})}
+              className="p-1.5 text-red-400 hover:text-red-600">✕</button>
+          )}
+        </div>
+      ))}
+    </div>
+
+    <FormField label="Notes">
+      <textarea className="input resize-none" rows={2} value={orderForm.notes}
+        onChange={e => setOrderForm({...orderForm, notes: e.target.value})} />
+    </FormField>
+  </div>
+  <div className="flex justify-end gap-2 mt-5 pt-4 border-t border-gray-100 dark:border-gray-800">
+    <button className="btn-secondary" onClick={() => setCreateModal(false)}>Cancel</button>
+    <button className="btn-primary" onClick={handleCreateOrder} disabled={orderSaving}>
+      {orderSaving ? 'Creating...' : 'Create Order'}
+    </button>
+  </div>
+</Modal>
     </div>
   );
 }

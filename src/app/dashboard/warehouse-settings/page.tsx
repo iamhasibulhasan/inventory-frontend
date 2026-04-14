@@ -175,13 +175,13 @@ export default function WarehouseSettingsPage() {
               {/* Group by rack */}
               {Object.entries(
                 mapData.reduce((acc: Record<string,Record<string,unknown>[]>, bin) => {
-                  const key = `${bin.floor_name}||${bin.room_name}||${bin.rack_name}`;
+                  const key = `${bin.floor_name as string}__${bin.room_name as string}__${bin.rack_name as string}`;
                   if (!acc[key]) acc[key] = [];
                   acc[key].push(bin as Record<string,unknown>);
                   return acc;
                 }, {})
               ).map(([key, rackBins]) => {
-                const [floor, room, rack] = key.split('||');
+              const [floor, room, rack] = key.split('__');
                 return (
                   <div key={key} className="card p-4">
                     <div className="flex items-center gap-2 mb-4 text-xs">

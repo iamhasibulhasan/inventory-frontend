@@ -5,13 +5,14 @@ import { PageHeader, DataTable, StatusBadge, Modal, FormField, EmptyState } from
 import { Plus, Truck, Search, Phone, Mail, MapPin } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '@/store';
+import { locationAPI } from '@/lib/api';
 
 interface Supplier {
   id: string; name: string; contact_person: string; email: string;
   phone: string; city: string; payment_terms: number; is_active: boolean; tax_id: string;
 }
 
-const EMPTY_FORM = { name: '', contact_person: '', email: '', phone: '', address: '', city: '', tax_id: '', payment_terms: '30' };
+const EMPTY_FORM = { name: '', contact_person: '', email: '', phone: '', address: '', city_id: '', tax_id: '', payment_terms: '30' };
 
 export default function SuppliersPage() {
   const { can: hasPermission } = useAuthStore();
@@ -22,6 +23,7 @@ export default function SuppliersPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [editId, setEditId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [cities, setCities] = useState<{id:string; name:string; state_name:string}[]>([]);
 
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
@@ -33,6 +35,9 @@ export default function SuppliersPage() {
   }, [search]);
 
   useEffect(() => { fetchSuppliers(); }, [fetchSuppliers]);
+  useEffect(() => {
+  locationAPI.getCities().then(r => setCities(r.data.data)).catch(() => {});
+}, []);
 
   const openCreate = () => { setForm(EMPTY_FORM); setEditId(null); setModal('create'); };
   const openEdit = (s: Supplier) => {
@@ -127,8 +132,11 @@ export default function SuppliersPage() {
             <input type="email" className="input" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder="contact@supplier.com" />
           </FormField>
           <FormField label="City">
-            <input className="input" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} placeholder="Dhaka" />
-          </FormField>
+  <select className="select" value={form.city_id||''} onChange={e => setForm({ ...form, city_id: e.target.value })}>
+    <option value="">Select city</option>
+    {cities.map(c => <option key={c.id} value={c.id}>{c.name} ({c.state_name})</option>)}
+  </select>
+</FormField>
           <FormField label="Address">
             <input className="input" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} placeholder="Street address" />
           </FormField>
