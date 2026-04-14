@@ -1,8 +1,7 @@
 {
   "/auth/login/page": "app/auth/login/page.js",
-  "/dashboard/purchase-order/page": "app/dashboard/purchase-order/page.js",
-  "/dashboard/warehouse-settings/page": "app/dashboard/warehouse-settings/page.js",
+  "/dashboard/stock-overview/page": "app/dashboard/stock-overview/page.js",
+  "/dashboard/users/page": "app/dashboard/users/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/commercial/page": "app/dashboard/commercial/page.js",
-  "/dashboard/users/page": "app/dashboard/users/page.js"
+  "/dashboard/product-stack/page": "app/dashboard/product-stack/page.js"
 }

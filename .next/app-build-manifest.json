@@ -91,10 +91,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/warehouse-settings/page.js"
     ],
-    "/not-found": [
+    "/dashboard/damage/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/not-found.js"
+      "static/chunks/app/dashboard/damage/page.js"
     ]
   }
 }

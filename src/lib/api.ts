@@ -32,6 +32,9 @@ export const authAPI = {
   me: () => api.get('/auth/me'),
   logout: () => api.post('/auth/logout'),
   changePassword: (d: object) => api.post('/auth/change-password', d),
+
+  // ✅ ADD THIS
+  updateProfile: (d: object) => api.put('/auth/profile', d),
 };
 
 export const usersAPI = {

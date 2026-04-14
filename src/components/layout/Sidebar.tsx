@@ -18,6 +18,7 @@ const ICON_MAP: Record<string, React.ElementType> = {
 };
 
 const ROUTE_MAP: Record<string, string> = {
+  dashboard: '/dashboard',
   user_management: '/dashboard/users',
   role_permissions: '/dashboard/role-permissions',
   location: '/dashboard/location',
@@ -50,6 +51,7 @@ const ROUTE_MAP: Record<string, string> = {
 };
 
 const MENU_TREE = [
+  { key: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
   { key: 'user_management', label: 'User Management', icon: 'Users' },
   { key: 'role_permissions', label: 'Role Menu Permission', icon: 'Shield' },
   {
