@@ -46,14 +46,47 @@ export default function WarehouseSettingsPage() {
     warehouseAPI.getStores().then(r=>setStores(r.data.data)).catch(()=>{});
   }, []);
 
-  const loadMap = async (storeId: string) => {
-    setMapStore(storeId);
-    try {
-      const r = await warehouseAPI.getTree(storeId);
-      // Build flat bin list with positions
-      setMapData(r.data.data.bins || []);
-    } catch {}
-  };
+const loadMap = async (storeId: string) => {
+  setMapStore(storeId);
+
+  try {
+    const r = await warehouseAPI.getTree(storeId);
+    const data = r?.data?.data;
+
+    const floors = data.floors || [];
+    const rooms  = data.rooms || [];
+    const racks  = data.racks || [];
+    const rows   = data.rows || [];
+    const bins   = data.bins || [];
+
+    // 🔥 Build lookup maps
+    const floorMap = Object.fromEntries(floors.map((f: any) => [f.id, f]));
+    const roomMap  = Object.fromEntries(rooms.map((r: any) => [r.id, r]));
+    const rackMap  = Object.fromEntries(racks.map((r: any) => [r.id, r]));
+    const rowMap   = Object.fromEntries(rows.map((r: any) => [r.id, r]));
+
+    // 🔥 Normalize bins with full hierarchy
+    const enrichedBins = bins.map((bin: any) => {
+      const row   = rowMap[bin.row_id];
+      const rack  = row ? rackMap[row.rack_id] : null;
+      const room  = rack ? roomMap[rack.room_id] : null;
+      const floor = room ? floorMap[room.floor_id] : null;
+
+      return {
+        ...bin,
+        row_name: row?.name || 'N/A',
+        rack_name: rack?.name || 'N/A',
+        room_name: room?.name || 'N/A',
+        floor_name: floor?.name || 'N/A',
+      };
+    });
+
+    setMapData(enrichedBins);
+
+  } catch {
+    toast.error('Failed to load map');
+  }
+};
 
   const openCreate = () => { setEditItem(null); setForm({}); setModal(true); };
   const openEdit = (item: Record<string,unknown>) => { setEditItem(item); setForm(Object.fromEntries(Object.entries(item).map(([k,v])=>[k,String(v??'')]))); setModal(true); };
@@ -153,67 +186,150 @@ export default function WarehouseSettingsPage() {
       {tab === 'row' && <div className="card overflow-hidden"><DataTable columns={genericColumns([{k:'name',l:'Row'},{k:'rack_name',l:'Rack'}])} data={rowsList} loading={loading} emptyState={<EmptyState icon={<AlignJustify className="w-6 h-6"/>} title="No rows"/>}/></div>}
       {tab === 'bin' && <div className="card overflow-hidden"><DataTable columns={binColumns} data={bins} loading={loading} emptyState={<EmptyState icon={<Box className="w-6 h-6"/>} title="No bins"/>}/></div>}
 
-      {tab === 'mapping' && (
-        <div>
-          <div className="flex items-center gap-3 mb-5">
-            <select className="select w-64" value={mapStore} onChange={e=>loadMap(e.target.value)}>
-              <option value="">Select store to view map</option>
-              {stores.map(s=><option key={s.id as string} value={s.id as string}>{s.name as string}</option>)}
-            </select>
-            {/* Legend */}
-            <div className="flex items-center gap-3 text-xs text-gray-500">
-              {[['#bbf7d0','Has Stock'],['#f9fafb','Empty'],['#fed7aa','70%+ Full'],['#fca5a5','Full'],['#e5e7eb','Scrap'],['#fecaca','Damage']].map(([c,l])=>(
-                <span key={l} className="flex items-center gap-1.5"><span className="w-3 h-3 rounded inline-block border border-gray-200" style={{background:c}}/>{l}</span>
-              ))}
-            </div>
-          </div>
+      {/* ================= MAPPING VIEW ================= */}
+{tab === 'mapping' && (
+  <div>
+    <div className="flex items-center gap-3 mb-5">
+      <select
+        className="select w-64"
+        value={mapStore}
+        onChange={e => loadMap(e.target.value)}
+      >
+        <option value="">Select store to view map</option>
+        {stores.map(s => (
+          <option key={s.id as string} value={s.id as string}>
+            {s.name as string}
+          </option>
+        ))}
+      </select>
 
-          {!mapStore ? (
-            <div className="card p-12 text-center"><Grid className="w-12 h-12 text-gray-300 mx-auto mb-3"/><p className="text-gray-500 text-sm">Select a store to view the warehouse map</p></div>
-          ) : (
-            <div className="space-y-4">
-              {/* Group by rack */}
-              {Object.entries(
-                mapData.reduce((acc: Record<string,Record<string,unknown>[]>, bin) => {
-                  const key = `${bin.floor_name}||${bin.room_name}||${bin.rack_name}`;
-                  if (!acc[key]) acc[key] = [];
-                  acc[key].push(bin as Record<string,unknown>);
-                  return acc;
-                }, {})
-              ).map(([key, rackBins]) => {
-                const [floor, room, rack] = key.split('||');
-                return (
-                  <div key={key} className="card p-4">
-                    <div className="flex items-center gap-2 mb-4 text-xs">
-                      <span className="font-medium text-gray-500">{floor}</span><span className="text-gray-300">›</span>
-                      <span className="font-medium text-gray-500">{room}</span><span className="text-gray-300">›</span>
-                      <span className="font-bold text-brand-600 text-sm">{rack}</span>
-                      <Badge variant="info">{rackBins.length} bins</Badge>
+      {/* Legend */}
+      <div className="flex items-center gap-3 text-xs text-gray-500">
+        {[
+          ['#bbf7d0','Has Stock'],
+          ['#f9fafb','Empty'],
+          ['#fed7aa','70%+ Full'],
+          ['#fca5a5','Full'],
+          ['#e5e7eb','Scrap'],
+          ['#fecaca','Damage']
+        ].map(([c,l])=>(
+          <span key={l} className="flex items-center gap-1.5">
+            <span className="w-3 h-3 rounded border" style={{background:c}}/>
+            {l}
+          </span>
+        ))}
+      </div>
+    </div>
+
+    {!mapStore ? (
+      <div className="card p-12 text-center">
+        <p className="text-gray-500 text-sm">
+          Select a store to view the warehouse map
+        </p>
+      </div>
+    ) : (
+      <div className="space-y-4">
+
+        {Object.entries(
+          mapData.reduce((acc: any, bin: any) => {
+
+            // ✅ SAFE NAME EXTRACTION
+            const floor = bin.floor_name || bin.floor?.name || 'N/A';
+            const room  = bin.room_name  || bin.room?.name  || 'N/A';
+            const rack  = bin.rack_name  || bin.rack?.name  || 'N/A';
+
+            const key = `${floor}__${room}__${rack}`;
+
+            if (!acc[key]) acc[key] = [];
+            acc[key].push(bin);
+
+            return acc;
+          }, {})
+        ).map(([key, rackBins]: any) => {
+
+          // ✅ SAFE SPLIT
+          const [floor = 'N/A', room = 'N/A', rack = 'N/A'] = key.split('__');
+
+          return (
+            <div key={key} className="card p-4">
+
+              {/* HEADER */}
+              <div className="flex items-center gap-2 mb-4 text-xs">
+                <span className="font-medium text-gray-500">
+                  {floor}
+                </span>
+
+                <span className="text-gray-300">›</span>
+
+                <span className="font-medium text-gray-500">
+                  {room}
+                </span>
+
+                <span className="text-gray-300">›</span>
+
+                <span className="font-bold text-brand-600 text-sm">
+                  {rack}
+                </span>
+
+                <span className="ml-2 text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded">
+                  {rackBins.length} bins
+                </span>
+              </div>
+
+              {/* BIN GRID */}
+              <div className="flex flex-wrap gap-2">
+
+                {rackBins.map((bin: any) => {
+
+                  const stock = Number(bin.current_stock || 0);
+                  const max   = Number(bin.max_capacity || 100);
+
+                  const pct = max > 0
+                    ? Math.round((stock / max) * 100)
+                    : 0;
+
+                  // ✅ COLOR LOGIC
+                  let bg = '#f9fafb';
+                  if (bin.bin_type === 'scrap') bg = '#e5e7eb';
+                  else if (bin.bin_type === 'damage') bg = '#fecaca';
+                  else if (stock === 0) bg = '#f9fafb';
+                  else if (stock >= max) bg = '#fca5a5';
+                  else if (stock >= max * 0.7) bg = '#fed7aa';
+                  else bg = '#bbf7d0';
+
+                  return (
+                    <div
+                      key={bin.id}
+                      className="flex flex-col items-center justify-between p-2 rounded-xl w-[72px] h-[72px] border hover:scale-110 hover:shadow-lg transition-all cursor-pointer"
+                      style={{ background: bg }}
+                      title={`${bin.code}: ${stock}/${max}`}
+                    >
+                      {/* BIN CODE */}
+                      <span className="text-[8px] font-mono font-bold text-gray-600 truncate w-full text-center">
+                        {(bin.code || '').replace('BIN-', '')}
+                      </span>
+
+                      {/* STOCK */}
+                      <span className="text-lg font-black text-gray-800">
+                        {stock}
+                      </span>
+
+                      {/* PERCENT */}
+                      <span className="text-[8px] text-gray-500">
+                        {max > 0 ? `${pct}%` : '—'}
+                      </span>
                     </div>
-                    {/* Cinema-seat style grid */}
-                    <div className="flex flex-wrap gap-2">
-                      {rackBins.map((bin: Record<string,unknown>) => {
-                        const stock = Number(bin.current_stock||0);
-                        const max = Number(bin.max_capacity||100);
-                        const pct = max > 0 ? Math.round((stock/max)*100) : 0;
-                        return (
-                          <div key={bin.id as string} className="flex flex-col items-center p-2 rounded-xl w-[72px] h-[72px] justify-between cursor-pointer transition-all hover:scale-110 hover:shadow-lg border"
-                            style={{ background: getBinBg(bin), borderColor: '#e5e7eb' }}
-                            title={`${bin.code as string}: ${stock} / ${max}`}>
-                            <span className="text-[8px] font-mono font-bold text-gray-600 leading-none text-center w-full truncate">{(bin.code as string)?.split('BIN-')[1]||bin.code as string}</span>
-                            <span className="text-lg font-black text-gray-800 leading-none">{stock}</span>
-                            <span className="text-[8px] text-gray-500">{max>0?`${pct}%`:'—'}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+
+              </div>
             </div>
-          )}
-        </div>
-      )}
+          );
+        })}
+      </div>
+    )}
+  </div>
+)}
 
       {/* Create/Edit Modal */}
       <Modal isOpen={modal} onClose={()=>setModal(false)} title={`${editItem?'Edit':'Add'} ${tab.charAt(0).toUpperCase()+tab.slice(1)}`}>

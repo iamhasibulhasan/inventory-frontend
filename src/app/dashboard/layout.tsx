@@ -1,5 +1,5 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, useUIStore } from '@/store';
 import Sidebar from '@/components/layout/Sidebar';
@@ -19,7 +19,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <Sidebar />
+      <Suspense fallback={null}>
+        <Sidebar />
+      </Suspense>
       <Topbar />
       <main className={clsx(
         'transition-all duration-300 pt-16 min-h-screen',
