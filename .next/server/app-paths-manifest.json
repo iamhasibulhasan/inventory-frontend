@@ -1,0 +1,8 @@
+{
+  "/dashboard/stock-overview/page": "app/dashboard/stock-overview/page.js",
+  "/dashboard/users/page": "app/dashboard/users/page.js",
+  "/dashboard/suppliers/page": "app/dashboard/suppliers/page.js",
+  "/dashboard/role-permissions/page": "app/dashboard/role-permissions/page.js",
+  "/dashboard/commercial/page": "app/dashboard/commercial/page.js",
+  "/dashboard/purchase-requisition/page": "app/dashboard/purchase-requisition/page.js"
+}
