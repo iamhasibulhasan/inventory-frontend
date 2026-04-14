@@ -1,9 +1,8 @@
 {
-  "/not-found": "app/not-found.js",
-  "/auth/login/page": "app/auth/login/page.js",
-  "/dashboard/product-stack/page": "app/dashboard/product-stack/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
   "/dashboard/outbound/page": "app/dashboard/outbound/page.js",
-  "/dashboard/inbound/page": "app/dashboard/inbound/page.js",
-  "/dashboard/warehouse-settings/page": "app/dashboard/warehouse-settings/page.js",
-  "/dashboard/page": "app/dashboard/page.js"
+  "/dashboard/packaging/page": "app/dashboard/packaging/page.js",
+  "/dashboard/stock-overview/page": "app/dashboard/stock-overview/page.js",
+  "/dashboard/purchase-order/page": "app/dashboard/purchase-order/page.js",
+  "/dashboard/warehouse-settings/page": "app/dashboard/warehouse-settings/page.js"
 }
