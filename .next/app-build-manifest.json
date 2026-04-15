@@ -1,10 +1,5 @@
 {
   "pages": {
-    "/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/page.js"
-    ],
     "/layout": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -31,25 +26,15 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/users/page.js"
     ],
-    "/dashboard/location/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/location/page.js"
-    ],
     "/dashboard/role-permissions/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/role-permissions/page.js"
     ],
-    "/dashboard/suppliers/page": [
+    "/dashboard/outbound/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/suppliers/page.js"
-    ],
-    "/dashboard/commercial/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/commercial/page.js"
+      "static/chunks/app/dashboard/outbound/page.js"
     ],
     "/dashboard/purchase-requisition/page": [
       "static/chunks/webpack.js",
@@ -61,11 +46,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/purchase-order/page.js"
     ],
-    "/dashboard/inbound/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/inbound/page.js"
-    ],
     "/dashboard/product-stack/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -76,25 +56,25 @@
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/stock-overview/page.js"
     ],
-    "/dashboard/outbound/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/outbound/page.js"
-    ],
     "/dashboard/packaging/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/packaging/page.js"
+    ],
+    "/dashboard/damage/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/dashboard/damage/page.js"
     ],
     "/dashboard/warehouse-settings/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/dashboard/warehouse-settings/page.js"
     ],
-    "/dashboard/damage/page": [
+    "/dashboard/inbound/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/dashboard/damage/page.js"
+      "static/chunks/app/dashboard/inbound/page.js"
     ]
   }
 }

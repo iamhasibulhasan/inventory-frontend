@@ -281,7 +281,7 @@ const handleSaveProfile = async () => {
               <button
                 onClick={handleSaveProfile}
                 disabled={saving}
-                className="btn-primary w-full"
+                className="btn-primary"
               >
                 {saving ? 'Saving...' : 'Save'}
               </button>
@@ -333,7 +333,7 @@ const handleSaveProfile = async () => {
               <button
                 onClick={handleChangePassword}
                 disabled={saving}
-                className="btn-primary w-full"
+                className="btn-primary"
               >
                 {saving ? 'Updating...' : 'Change Password'}
               </button>

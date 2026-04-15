@@ -43,7 +43,10 @@ export const useAuthStore = create<AuthState>()(
       setAuth: (user, token) => set({ user, token, isAuthenticated: true }),
       logout: () => {
         set({ user: null, token: null, isAuthenticated: false });
-        if (typeof window !== 'undefined') window.location.href = '/auth/login';
+        if (typeof window !== 'undefined') {
+          // Small delay to let state settle before redirect
+          setTimeout(() => { window.location.href = '/auth/login'; }, 100);
+        }
       },
       can: (menuKey, action = 'view') => {
         const { user } = get();
