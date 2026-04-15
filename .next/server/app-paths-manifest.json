@@ -1,8 +1,7 @@
 {
+  "/auth/login/page": "app/auth/login/page.js",
+  "/dashboard/damage/page": "app/dashboard/damage/page.js",
   "/dashboard/stock-overview/page": "app/dashboard/stock-overview/page.js",
-  "/dashboard/purchase-order/page": "app/dashboard/purchase-order/page.js",
   "/dashboard/outbound/page": "app/dashboard/outbound/page.js",
-  "/dashboard/packaging/page": "app/dashboard/packaging/page.js",
-  "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/damage/page": "app/dashboard/damage/page.js"
+  "/dashboard/role-permissions/page": "app/dashboard/role-permissions/page.js"
 }

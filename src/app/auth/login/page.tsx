@@ -116,7 +116,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          © 2025 Inventory Management System · Bangladesh
+          © 2026 Inventory Management System · Bangladesh
         </p>
       </div>
     </div>
